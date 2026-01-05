@@ -1,29 +1,14 @@
 import { useEffect, useReducer } from 'react';
 import type { CSSProperties } from 'react';
+import { MEMORY_COLORS, STORAGE_GAME_SCORE } from './constants';
+import { EAction } from './enums';
+import type { DeckType, StateType } from './types';
 import './App.css';
 
-type DeckType = {
-    color: string;
-    matched: boolean;
-};
-
-type ActionType = 'FLIP_CARD' | 'CHECK_MATCH' | 'RESET_FLIPPED' | 'INCREMENT_TURN' | 'RESET_GAME';
-
-type StateType = {
-    deck: DeckType[];
-    flipped: number[];
-    matched: string[];
-    turns: number;
-    score: number;
-    pendingReset: boolean;
-    gameOver: boolean;
-};
-
-const colors = ['#FF6347', '#4682B4', '#32CD32', '#FFD700', '#FF69B4', '#8A2BE2'];
-
 const deck: DeckType[] = [];
+
 // Каждому цвету добавляем две карточки
-for (const color of colors) {
+for (const color of MEMORY_COLORS) {
     deck.push({ color, matched: false });
     deck.push({ color, matched: false });
 }
@@ -47,9 +32,9 @@ const initialState: StateType = {
     gameOver: false,
 };
 
-const gameReducer = (state: StateType, action: { type: ActionType; index?: number }): StateType => {
+const gameReducer = (state: StateType, action: { type: EAction; index?: number }): StateType => {
     switch (action.type) {
-        case 'FLIP_CARD':
+        case EAction.FLIP_CARD:
             // Переворачиваем карточку
             if (
                 state.flipped.length < 2 &&
@@ -60,16 +45,22 @@ const gameReducer = (state: StateType, action: { type: ActionType; index?: numbe
                 return { ...state, flipped: [...state.flipped, action.index] };
             }
             return state;
-        case 'CHECK_MATCH': {
+        case EAction.CHECK_MATCH: {
             // Проверяем совпадение перевернутых карточек
             const [first, second] = state.flipped;
             if (state.deck[first].color === state.deck[second].color) {
                 const newMatched = [...state.matched, state.deck[first].color];
                 const isGameOver = newMatched.length === state.deck.length / 2;
+                const score = isGameOver ? state.score + 1 : state.score;
+
+                if (isGameOver) {
+                    localStorage.setItem(STORAGE_GAME_SCORE, score.toString());
+                }
+
                 return {
                     ...state,
                     matched: newMatched,
-                    score: isGameOver ? state.score + 1 : state.score,
+                    score,
                     flipped: [],
                     pendingReset: false,
                     gameOver: isGameOver,
@@ -78,13 +69,13 @@ const gameReducer = (state: StateType, action: { type: ActionType; index?: numbe
                 return { ...state, pendingReset: true };
             }
         }
-        case 'RESET_FLIPPED':
+        case EAction.RESET_FLIPPED:
             // Сбрасываем перевернутые карточки
             return { ...state, flipped: [], pendingReset: false };
-        case 'INCREMENT_TURN':
+        case EAction.INCREMENT_TURN:
             // Увеличиваем счетчик попыток
             return { ...state, turns: state.turns + 1 };
-        case 'RESET_GAME':
+        case EAction.RESET_GAME:
             // Сбрасываем состояние игры
             return {
                 ...initialState,
@@ -102,8 +93,8 @@ function App() {
     // Проверка на совпадение перевернутых карточек
     useEffect(() => {
         if (state.flipped.length === 2) {
-            dispatch({ type: 'CHECK_MATCH' });
-            dispatch({ type: 'INCREMENT_TURN' });
+            dispatch({ type: EAction.CHECK_MATCH });
+            dispatch({ type: EAction.INCREMENT_TURN });
         }
     }, [state.flipped]);
 
@@ -111,7 +102,7 @@ function App() {
     useEffect(() => {
         if (state.pendingReset) {
             const timer = setTimeout(() => {
-                dispatch({ type: 'RESET_FLIPPED' });
+                dispatch({ type: EAction.RESET_FLIPPED });
             }, 1000);
             return () => clearTimeout(timer);
         }
@@ -120,12 +111,12 @@ function App() {
     // Обработка клика на карточку
     const handleCardClick = (index: number) => {
         if (!state.gameOver && state.flipped.length < 2 && !state.flipped.includes(index)) {
-            dispatch({ type: 'FLIP_CARD', index });
+            dispatch({ type: EAction.FLIP_CARD, index });
         }
     };
 
     const handlePlayAgain = () => {
-        dispatch({ type: 'RESET_GAME' });
+        dispatch({ type: EAction.RESET_GAME });
     };
 
     return (

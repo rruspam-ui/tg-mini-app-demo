@@ -4,71 +4,38 @@ import './index.css';
 import App from './App.tsx';
 
 import { init, miniApp, mainButton, shareURL } from '@telegram-apps/sdk';
+import { STORAGE_GAME_SCORE } from './constants.ts';
 
 const initializeTelegramSDK = async () => {
     try {
         init();
 
+        // Mini App готово
         miniApp.ready();
 
+        // Главная кнопка установлена
         mainButton.mount();
 
+        // Настраиваем свойства главной кнопки
         mainButton.setParams({
             backgroundColor: '#aa1388', // Цвет кнопки
             isEnabled: true, // Кнопка активна
             isVisible: true, // Кнопка видима
             text: 'Поделиться очками', // Текст на кнопке
-            textColor: '#000000', // Цвет текста
+            textColor: '#fff', // Цвет текста
         });
 
+        // Добавляем слушатель кликов на кнопку
         mainButton.onClick(() => {
             try {
                 // Получение текущих очков из localStorage
-                const score = localStorage.getItem('memory-game-score') || 0;
+                const score = localStorage.getItem(STORAGE_GAME_SCORE) || 0;
                 shareURL(`Посмотрите! У меня ${score} очков в игре!`);
                 console.log('Окно выбора чата открыто для отправки сообщения.');
             } catch (error) {
                 console.error('Ошибка при открытии окна выбора чата:', error);
             }
         });
-
-        // if (miniApp.ready.isAvailable()) {
-        //     miniApp.ready();
-        //     console.log('Mini App готово');
-        //     miniApp.setHeaderColor('#fcb69f');
-
-        //     // Монтируем главную кнопку
-        //     if (mainButton.mount.isAvailable()) {
-        //         mainButton.mount(); // Убедимся, что кнопка установлена
-        //         console.log('Главная кнопка установлена');
-        //     }
-
-        //     // Настраиваем свойства главной кнопки
-        //     if (mainButton.setParams.isAvailable()) {
-        //         mainButton.setParams({
-        //             backgroundColor: '#aa1388', // Цвет кнопки
-        //             isEnabled: true, // Кнопка активна
-        //             isVisible: true, // Кнопка видима
-        //             text: 'Поделиться очками', // Текст на кнопке
-        //             textColor: '#000000', // Цвет текста
-        //         });
-        //         console.log('Свойства главной кнопки настроены');
-        //     }
-
-        //     // Добавляем слушатель кликов на кнопку
-        //     if (mainButton.onClick.isAvailable()) {
-        //         mainButton.onClick(() => {
-        //             try {
-        //                 // Получение текущих очков из localStorage
-        //                 const score = localStorage.getItem('memory-game-score') || 0;
-        //                 shareURL(`Посмотрите! У меня ${score} очков в игре!`);
-        //                 console.log('Окно выбора чата открыто для отправки сообщения.');
-        //             } catch (error) {
-        //                 console.error('Ошибка при открытии окна выбора чата:', error);
-        //             }
-        //         });
-        //     }
-        // }
     } catch (error) {
         console.error('Ошибка инициализации:', error);
     }
