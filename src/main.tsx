@@ -4,8 +4,8 @@ import './index.css';
 import App from './App.tsx';
 
 import { miniApp, mainButton, shareURL, initData, popup, retrieveLaunchParams } from '@tma.js/sdk-react';
-import { STORAGE_GAME_SCORE } from './constants.ts';
 import { init } from './init.ts';
+import { getScore } from './utils.ts';
 
 // Mock the environment in case, we are outside Telegram.
 import './mockEnv.ts';
@@ -49,7 +49,7 @@ try {
     mainButton.onClick(() => {
         try {
             // Получение текущих очков из localStorage
-            const score = localStorage.getItem(STORAGE_GAME_SCORE) || 0;
+            const score = getScore();
             shareURL(`Посмотрите! У меня ${score} очков в игре!`);
             console.log('Окно выбора чата открыто для отправки сообщения.');
         } catch (error) {

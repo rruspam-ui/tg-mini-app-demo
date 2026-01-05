@@ -1,8 +1,9 @@
 import { useEffect, useReducer } from 'react';
 import type { CSSProperties } from 'react';
-import { MEMORY_COLORS, STORAGE_GAME_SCORE } from './constants';
+import { MEMORY_COLORS } from './constants';
 import { EAction } from './enums';
 import type { DeckType, StateType } from './types';
+import { getScore, setScore } from './utils';
 import './App.css';
 
 const deck: DeckType[] = [];
@@ -27,7 +28,7 @@ const initialState: StateType = {
     // Счетчик попыток
     turns: 0,
     // Общий счет
-    score: 0,
+    score: getScore(),
     pendingReset: false,
     gameOver: false,
 };
@@ -62,7 +63,7 @@ const gameReducer = (state: StateType, action: { type: EAction; index?: number }
                 const score = isGameOver ? state.score + 1 : state.score;
 
                 if (isGameOver) {
-                    localStorage.setItem(STORAGE_GAME_SCORE, score.toString());
+                    setScore(score);
                 }
 
                 return {
@@ -86,7 +87,7 @@ const gameReducer = (state: StateType, action: { type: EAction; index?: number }
             return {
                 ...initialState,
                 deck: generateDeck(),
-                score: state.score,
+                score: getScore(),
             };
         default:
             return state;
