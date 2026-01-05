@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
 
-import { init, miniApp, mainButton, shareURL } from '@telegram-apps/sdk';
+import { init, miniApp, mainButton, shareURL, initData, showPopup } from '@telegram-apps/sdk';
 import { STORAGE_GAME_SCORE } from './constants.ts';
 
 const initializeTelegramSDK = async () => {
@@ -36,6 +36,12 @@ const initializeTelegramSDK = async () => {
                 console.error('Ошибка при открытии окна выбора чата:', error);
             }
         });
+
+        const user = initData.user;
+
+        if (user) {
+            showPopup({ title: 'Добро пожаловать', message: `Пользователь ${user.name}`, timeout: 1000 });
+        }
     } catch (error) {
         console.error('Ошибка инициализации:', error);
     }

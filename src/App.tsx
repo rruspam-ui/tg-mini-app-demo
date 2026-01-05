@@ -37,17 +37,25 @@ const gameReducer = (state: StateType, action: { type: EAction; index?: number }
         case EAction.FLIP_CARD:
             // Переворачиваем карточку
             if (
-                state.flipped.length < 2 &&
                 action.index !== undefined &&
+                state.flipped.length < 2 &&
                 !state.flipped.includes(action.index) &&
                 !state.matched.includes(state.deck[action.index].color)
             ) {
                 return { ...state, flipped: [...state.flipped, action.index] };
             }
+
             return state;
         case EAction.CHECK_MATCH: {
+            if (state.flipped.length !== 2) {
+                return state;
+            }
+
             // Проверяем совпадение перевернутых карточек
             const [first, second] = state.flipped;
+            // Увеличиваем счетчик попыток
+            const turns = state.turns + 1;
+
             if (state.deck[first].color === state.deck[second].color) {
                 const newMatched = [...state.matched, state.deck[first].color];
                 const isGameOver = newMatched.length === state.deck.length / 2;
@@ -60,23 +68,21 @@ const gameReducer = (state: StateType, action: { type: EAction; index?: number }
                 return {
                     ...state,
                     matched: newMatched,
+                    turns,
                     score,
                     flipped: [],
                     pendingReset: false,
                     gameOver: isGameOver,
                 };
-            } else {
-                return { ...state, pendingReset: true };
             }
+
+            return { ...state, turns, pendingReset: true };
         }
         case EAction.RESET_FLIPPED:
             // Сбрасываем перевернутые карточки
             return { ...state, flipped: [], pendingReset: false };
-        case EAction.INCREMENT_TURN:
-            // Увеличиваем счетчик попыток
-            return { ...state, turns: state.turns + 1 };
         case EAction.RESET_GAME:
-            // Сбрасываем состояние игры
+            // Сбрасываем состояние игры, оставляя счетчик побед
             return {
                 ...initialState,
                 deck: generateDeck(),
@@ -94,7 +100,6 @@ function App() {
     useEffect(() => {
         if (state.flipped.length === 2) {
             dispatch({ type: EAction.CHECK_MATCH });
-            dispatch({ type: EAction.INCREMENT_TURN });
         }
     }, [state.flipped]);
 
