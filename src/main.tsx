@@ -58,16 +58,17 @@ try {
     });
 
     const params = retrieveLaunchParams();
-
-    if (params) {
-        await popup.show({ title: 'Добро пожаловать', message: `Версия ${params.tgWebAppVersion}` });
-    }
-
     const user = initData.user();
 
     if (user) {
         const userName = [user.last_name, user.first_name].filter((s) => Boolean(s)).join(' ');
-        await popup.show({ title: 'Добро пожаловать', message: `Пользователь ${userName}`, timeout: 1000 });
+        const messages = [`Добро пожаловать ${userName}`];
+
+        if (params) {
+            messages.push(`Версия ${params.tgWebAppVersion}`);
+        }
+
+        await popup.show({ message: messages.join('\n'), timeout: 1000 });
     }
 } catch (error) {
     console.error('Ошибка инициализации:', error);
