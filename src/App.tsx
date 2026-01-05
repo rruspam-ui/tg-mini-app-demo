@@ -89,6 +89,7 @@ const gameReducer = (state: StateType, action: { type: ActionType; index?: numbe
             return {
                 ...initialState,
                 deck: generateDeck(),
+                score: state.score,
             };
         default:
             return state;
