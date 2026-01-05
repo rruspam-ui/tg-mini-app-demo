@@ -3,61 +3,72 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
 
-import { init, miniApp, mainButton, shareURL, initDataUser, showPopup, retrieveLaunchParams } from '@telegram-apps/sdk';
+import { miniApp, mainButton, shareURL, initData, popup, retrieveLaunchParams } from '@tma.js/sdk-react';
 import { STORAGE_GAME_SCORE } from './constants.ts';
+import { init } from './init.ts';
 
-const initializeTelegramSDK = async () => {
-    try {
-        init();
+// Mock the environment in case, we are outside Telegram.
+import './mockEnv.ts';
 
-        // Mini App готово
-        miniApp.ready();
+const root = createRoot(document.getElementById('root')!);
 
-        // Главная кнопка установлена
-        mainButton.mount();
+try {
+    const launchParams = retrieveLaunchParams();
+    const { tgWebAppPlatform: platform } = launchParams;
+    const debug = (launchParams.tgWebAppStartParam || '').includes('debug') || import.meta.env.DEV;
 
-        // Настраиваем свойства главной кнопки
-        mainButton.setParams({
-            backgroundColor: '#aa1388', // Цвет кнопки
-            isEnabled: true, // Кнопка активна
-            isVisible: true, // Кнопка видима
-            text: 'Поделиться очками', // Текст на кнопке
-            textColor: '#fff', // Цвет текста
-        });
+    // Configure all application dependencies.
+    await init({
+        debug,
+        eruda: debug && ['ios', 'android'].includes(platform),
+        mockForMacOS: platform === 'macos',
+    }).then(() => {
+        root.render(
+            <StrictMode>
+                <App />
+            </StrictMode>,
+        );
+    });
 
-        // Добавляем слушатель кликов на кнопку
-        mainButton.onClick(() => {
-            try {
-                // Получение текущих очков из localStorage
-                const score = localStorage.getItem(STORAGE_GAME_SCORE) || 0;
-                shareURL(`Посмотрите! У меня ${score} очков в игре!`);
-                console.log('Окно выбора чата открыто для отправки сообщения.');
-            } catch (error) {
-                console.error('Ошибка при открытии окна выбора чата:', error);
-            }
-        });
+    // Mini App готово
+    miniApp.ready();
 
-        const params = retrieveLaunchParams(true);
+    // Главная кнопка установлена
+    mainButton.mount();
 
-        if (params) {
-            showPopup({ title: 'Добро пожаловать', message: `Версия ${params.tgWebAppVersion}` });
+    // Настраиваем свойства главной кнопки
+    mainButton.setParams({
+        bgColor: '#aa1388', // Цвет кнопки
+        isEnabled: true, // Кнопка активна
+        isVisible: true, // Кнопка видима
+        text: 'Поделиться очками', // Текст на кнопке
+        textColor: '#fff', // Цвет текста
+    });
+
+    // Добавляем слушатель кликов на кнопку
+    mainButton.onClick(() => {
+        try {
+            // Получение текущих очков из localStorage
+            const score = localStorage.getItem(STORAGE_GAME_SCORE) || 0;
+            shareURL(`Посмотрите! У меня ${score} очков в игре!`);
+            console.log('Окно выбора чата открыто для отправки сообщения.');
+        } catch (error) {
+            console.error('Ошибка при открытии окна выбора чата:', error);
         }
+    });
 
-        const user = initDataUser();
+    const params = retrieveLaunchParams();
 
-        if (user) {
-            //     const userName = [user.last_name, user.first_name].filter((s) => Boolean(s)).join(' ');
-            //     await showPopup({ title: 'Добро пожаловать', message: `Пользователь ${userName}`, timeout: 1000 });
-        }
-    } catch (error) {
-        console.error('Ошибка инициализации:', error);
+    if (params) {
+        await popup.show({ title: 'Добро пожаловать', message: `Версия ${params.tgWebAppVersion}` });
     }
-};
 
-initializeTelegramSDK();
+    const user = initData.user();
 
-createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-        <App />
-    </StrictMode>,
-);
+    if (user) {
+        const userName = [user.last_name, user.first_name].filter((s) => Boolean(s)).join(' ');
+        await popup.show({ title: 'Добро пожаловать', message: `Пользователь ${userName}`, timeout: 1000 });
+    }
+} catch (error) {
+    console.error('Ошибка инициализации:', error);
+}
