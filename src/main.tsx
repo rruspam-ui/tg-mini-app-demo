@@ -9,6 +9,7 @@ import { getScore } from './utils.ts';
 
 // Mock the environment in case, we are outside Telegram.
 import './mockEnv.ts';
+import { APP_VERSION } from './constants.ts';
 
 const root = createRoot(document.getElementById('root')!);
 
@@ -65,10 +66,12 @@ try {
         const messages = [`Добро пожаловать ${userName}`];
 
         if (params) {
-            messages.push(`Версия ${params.tgWebAppVersion}`);
+            // messages.push(`Версия ${params.tgWebAppVersion}`);
         }
 
-        await popup.show({ message: messages.join('\n'), timeout: 1000 });
+        messages.push(`Версия приложения ${APP_VERSION}`);
+
+        await popup.show({ message: messages.join('\n') });
     }
 } catch (error) {
     console.error('Ошибка инициализации:', error);
