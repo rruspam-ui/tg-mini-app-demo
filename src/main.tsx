@@ -5,7 +5,7 @@ import App from './App.tsx';
 
 import { miniApp, mainButton, shareURL, initData, popup, retrieveLaunchParams } from '@tma.js/sdk-react';
 import { init } from './init.ts';
-import { getRemoteScore, getScore } from './utils.ts';
+import { getScore } from './utils.ts';
 
 // Mock the environment in case, we are outside Telegram.
 import './mockEnv.ts';
@@ -62,8 +62,8 @@ try {
     const user = initData.user();
 
     if (user) {
-        await getRemoteScore(user);
-        await getRemoteScore(params);
+        // await getRemoteScore(user);
+        // await getRemoteScore(params);
 
         const userName = [user.last_name, user.first_name].filter((s) => Boolean(s)).join(' ');
         const messages = [`Добро пожаловать ${userName}`];
