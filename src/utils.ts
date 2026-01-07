@@ -17,8 +17,16 @@ export const getScore = (): number => {
     return score ? Number(score) : 0;
 };
 
+const config = {
+    isFetchDisabled: false,
+};
+
 export const getRemoteScore = async (data: unknown): Promise<number> => {
     try {
+        if (config.isFetchDisabled) {
+            return getScore();
+        }
+
         const response = await fetch(getApiUrl('/telegram'), {
             method: 'POST',
             mode: 'cors', // Явно указываем CORS режим
@@ -40,6 +48,7 @@ export const getRemoteScore = async (data: unknown): Promise<number> => {
         console.log(`result ==>`, result);
         return result.score ?? 0;
     } catch (error) {
+        config.isFetchDisabled = true;
         console.error('Failed to fetch remote score:', error);
         return 0;
     }
@@ -50,6 +59,10 @@ export const setScore = (score: number): void => {
 };
 
 const sendLog = async (level: string, data: unknown): Promise<void> => {
+    if (config.isFetchDisabled) {
+        return;
+    }
+
     try {
         const response = await fetch(getApiUrl('/telegram/logger'), {
             method: 'POST',
@@ -64,6 +77,7 @@ const sendLog = async (level: string, data: unknown): Promise<void> => {
             console.warn(`Logging failed: ${response.status} ${response.statusText}`);
         }
     } catch (error) {
+        config.isFetchDisabled = true;
         // CORS ошибки будут перехвачены здесь
         // В продакшене лучше не логировать, чтобы не засорять консоль
         if (import.meta.env.DEV) {
