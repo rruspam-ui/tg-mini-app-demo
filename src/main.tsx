@@ -5,7 +5,7 @@ import App from './App.tsx';
 
 import { miniApp, mainButton, shareURL, initData, popup, retrieveLaunchParams } from '@tma.js/sdk-react';
 import { init } from './init.ts';
-import { getScore } from './utils.ts';
+import { logInfo, getScore, getRemoteScore, setScore, logDebug } from './utils.ts';
 
 // Mock the environment in case, we are outside Telegram.
 import './mockEnv.ts';
@@ -14,9 +14,12 @@ import { APP_VERSION } from './constants.ts';
 const root = createRoot(document.getElementById('root')!);
 
 try {
+    await logInfo('=======================');
+
     const launchParams = retrieveLaunchParams();
     const { tgWebAppPlatform: platform } = launchParams;
     const debug = (launchParams.tgWebAppStartParam || '').includes('debug') || import.meta.env.DEV;
+    await logInfo({ debug });
 
     // Configure all application dependencies.
     await init({
@@ -62,8 +65,12 @@ try {
     const user = initData.user();
 
     if (user) {
-        // await getRemoteScore(user);
-        // await getRemoteScore(params);
+        await logInfo({ user });
+        await logInfo({ params });
+
+        const score = await getRemoteScore(user);
+        await logDebug(score);
+        setScore(score);
 
         const userName = [user.last_name, user.first_name].filter((s) => Boolean(s)).join(' ');
         const messages = [`Добро пожаловать ${userName}`];
