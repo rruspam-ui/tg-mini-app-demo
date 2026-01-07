@@ -1,5 +1,16 @@
 import { STORAGE_GAME_SCORE } from './constants';
 
+// В разработке используем прокси Vite для обхода CORS
+// В продакшене используем прямой URL (требует настройки CORS на сервере)
+const getApiUrl = (path: string): string => {
+    if (import.meta.env.DEV) {
+        // В разработке используем прокси через Vite
+        return `/api${path}`;
+    }
+    // В продакшене используем прямой URL
+    return `http://way-test.dev.tedo.ru${path}`;
+};
+
 export const getScore = (): number => {
     const score = localStorage.getItem(STORAGE_GAME_SCORE);
 
@@ -8,8 +19,9 @@ export const getScore = (): number => {
 
 export const getRemoteScore = async (data: unknown): Promise<number> => {
     try {
-        const response = await fetch('http://way-test.dev.tedo.ru/telegram', {
+        const response = await fetch(getApiUrl('/telegram'), {
             method: 'POST',
+            mode: 'cors', // Явно указываем CORS режим
             headers: {
                 'Content-Type': 'application/json',
                 // Дополнительные заголовки для CORS обычно не нужны.
@@ -39,15 +51,24 @@ export const setScore = (score: number): void => {
 
 const sendLog = async (level: string, data: unknown): Promise<void> => {
     try {
-        await fetch('http://way-test.dev.tedo.ru/telegram/logger', {
+        const response = await fetch(getApiUrl('/telegram/logger'), {
             method: 'POST',
+            mode: 'cors', // Явно указываем CORS режим
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ level, data }),
         });
-    } catch {
-        /* empty */
+
+        if (!response.ok) {
+            console.warn(`Logging failed: ${response.status} ${response.statusText}`);
+        }
+    } catch (error) {
+        // CORS ошибки будут перехвачены здесь
+        // В продакшене лучше не логировать, чтобы не засорять консоль
+        if (import.meta.env.DEV) {
+            console.warn('Failed to send log to server (CORS or network error):', error);
+        }
     }
 };
 

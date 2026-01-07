@@ -69,7 +69,7 @@ try {
         await logInfo({ params });
 
         const score = await getRemoteScore(user);
-        await logDebug(score);
+        await logDebug({ score });
         setScore(score);
 
         const userName = [user.last_name, user.first_name].filter((s) => Boolean(s)).join(' ');

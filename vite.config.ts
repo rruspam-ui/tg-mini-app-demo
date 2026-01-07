@@ -7,4 +7,14 @@ export default defineConfig({
     build: {
         outDir: 'build',
     },
+    server: {
+        proxy: {
+            // Прокси для обхода CORS в разработке
+            '/api': {
+                target: 'http://way-test.dev.tedo.ru',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api/, ''),
+            },
+        },
+    },
 });
