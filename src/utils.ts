@@ -45,12 +45,15 @@ export const getRemoteScore = async (data: unknown): Promise<number> => {
         }
 
         const result = await response.json();
-        console.log(`result ==>`, result);
-        return result.score ?? 0;
+        const score = result.score ?? 0;
+
+        setScore(score);
+
+        return score;
     } catch (error) {
         config.isFetchDisabled = true;
         console.error('Failed to fetch remote score:', error);
-        return 0;
+        return getScore();
     }
 };
 
