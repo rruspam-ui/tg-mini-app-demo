@@ -73,14 +73,16 @@ const sendLog = async (level: string, data: unknown): Promise<void> => {
     }
 
     try {
+        console.log('SEND LOG ==>', level, data);
         const { initDataRaw } = retrieveLaunchParams();
+        console.log('initDataRaw ==>', initDataRaw);
 
         const response = await fetch(getApiUrl('/telegram/logger'), {
             method: 'POST',
-            mode: 'cors', // Явно указываем CORS режим
+            // mode: 'cors', // Явно указываем CORS режим
             headers: {
-                'Content-Type': 'application/json',
                 Authorization: `tma ${initDataRaw}`,
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({ level, data }),
         });
