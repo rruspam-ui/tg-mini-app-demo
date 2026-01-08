@@ -10,7 +10,7 @@ import {
     initData,
     popup,
     retrieveLaunchParams,
-    retrieveRawLaunchParams,
+    retrieveRawInitData,
 } from '@tma.js/sdk-react';
 import { init } from './init.ts';
 import { logInfo, getScore, getRemoteScore, setScore, logDebug, setInitData } from './utils.ts';
@@ -69,7 +69,7 @@ try {
     const params = retrieveLaunchParams();
     const user = initData.user();
 
-    setInitData(retrieveRawLaunchParams());
+    setInitData(retrieveRawInitData());
 
     await logInfo('=======================');
     await logInfo({ debug });

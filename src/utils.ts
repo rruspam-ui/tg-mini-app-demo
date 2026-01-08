@@ -64,7 +64,12 @@ export const setScore = (score: number): void => {
     localStorage.setItem(STORAGE_GAME_SCORE, score.toString());
 };
 
-export const setInitData = (data: string): void => {
+export const setInitData = (data: string | undefined): void => {
+    if (!data) {
+        console.warn(`SET Init data is not exist!!!`);
+        return;
+    }
+
     config.initData = data;
 };
 
