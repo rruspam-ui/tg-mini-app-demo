@@ -1,3 +1,5 @@
+import { retrieveLaunchParams } from '@tma.js/sdk-react';
+
 import { STORAGE_GAME_SCORE } from './constants';
 
 // В разработке используем прокси Vite для обхода CORS
@@ -11,6 +13,7 @@ const getApiUrl = (path: string): string => {
     return `http://way-test.dev.tedo.ru${path}`;
 };
 
+// Получение кол-ва побед из локального хранилища
 export const getScore = (): number => {
     const score = localStorage.getItem(STORAGE_GAME_SCORE);
 
@@ -27,6 +30,8 @@ export const getRemoteScore = async (data: unknown): Promise<number> => {
             return getScore();
         }
 
+        const { initDataRaw } = retrieveLaunchParams();
+
         const response = await fetch(getApiUrl('/telegram'), {
             method: 'POST',
             mode: 'cors', // Явно указываем CORS режим
@@ -36,6 +41,7 @@ export const getRemoteScore = async (data: unknown): Promise<number> => {
                 // Браузер автоматически обрабатывает preflight запросы.
                 // Если сервер требует авторизацию, раскомментируйте:
                 // 'Authorization': 'Bearer YOUR_TOKEN',
+                Authorization: `tma ${initDataRaw}`,
             },
             body: JSON.stringify(data),
         });
@@ -67,11 +73,14 @@ const sendLog = async (level: string, data: unknown): Promise<void> => {
     }
 
     try {
+        const { initDataRaw } = retrieveLaunchParams();
+
         const response = await fetch(getApiUrl('/telegram/logger'), {
             method: 'POST',
             mode: 'cors', // Явно указываем CORS режим
             headers: {
                 'Content-Type': 'application/json',
+                Authorization: `tma ${initDataRaw}`,
             },
             body: JSON.stringify({ level, data }),
         });
