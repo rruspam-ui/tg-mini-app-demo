@@ -1,4 +1,4 @@
-import { retrieveLaunchParams, initData } from '@tma.js/sdk-react';
+import { retrieveLaunchParams, initData, retrieveRawLaunchParams } from '@tma.js/sdk-react';
 
 import { STORAGE_GAME_SCORE } from './constants';
 
@@ -78,12 +78,14 @@ const sendLog = async (level: string, data: unknown): Promise<void> => {
         console.log('tgWebAppData ==>', tgWebAppData);
         const signature = initData.signature();
         console.log('signature ==>', signature);
+        const params = retrieveRawLaunchParams();
+        console.log('params ==>', params);
 
         const response = await fetch(getApiUrl('/telegram/logger'), {
             method: 'POST',
-            // mode: 'cors', // Явно указываем CORS режим
+            mode: 'cors', // Явно указываем CORS режим
             headers: {
-                Authorization: `tma ${signature}`,
+                Authorization: `tma ${params}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ level, data }),
