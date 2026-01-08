@@ -14,12 +14,9 @@ import { APP_VERSION } from './constants.ts';
 const root = createRoot(document.getElementById('root')!);
 
 try {
-    await logInfo('=======================');
-
     const launchParams = retrieveLaunchParams();
     const { tgWebAppPlatform: platform } = launchParams;
     const debug = (launchParams.tgWebAppStartParam || '').includes('debug') || import.meta.env.DEV;
-    await logInfo({ debug });
 
     // Configure all application dependencies.
     await init({
@@ -64,13 +61,13 @@ try {
     const params = retrieveLaunchParams();
     const user = initData.user();
 
-    if (user) {
-        await logInfo({ user });
-        await logInfo({ params });
+    await logInfo('=======================');
+    await logInfo({ debug });
 
+    if (user) {
         const score = await getRemoteScore(user);
-        await logDebug({ score });
         setScore(score);
+        await logDebug({ score });
 
         const userName = [user.last_name, user.first_name].filter((s) => Boolean(s)).join(' ');
         const messages = [`Добро пожаловать ${userName}`];
@@ -82,6 +79,9 @@ try {
         messages.push(`Версия приложения ${APP_VERSION}`);
 
         await popup.show({ message: messages.join('\n') });
+
+        await logInfo({ user });
+        await logInfo({ params });
     }
 } catch (error) {
     console.error('Ошибка инициализации:', error);
