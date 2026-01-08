@@ -1,5 +1,3 @@
-import { retrieveLaunchParams, initData, retrieveRawLaunchParams } from '@tma.js/sdk-react';
-
 import { STORAGE_GAME_SCORE } from './constants';
 
 // В разработке используем прокси Vite для обхода CORS
@@ -22,6 +20,7 @@ export const getScore = (): number => {
 
 const config = {
     isFetchDisabled: false,
+    initData: '',
 };
 
 export const getRemoteScore = async (data: unknown): Promise<number> => {
@@ -29,8 +28,6 @@ export const getRemoteScore = async (data: unknown): Promise<number> => {
         if (config.isFetchDisabled) {
             return getScore();
         }
-
-        const { initDataRaw } = retrieveLaunchParams();
 
         const response = await fetch(getApiUrl('/telegram'), {
             method: 'POST',
@@ -41,7 +38,7 @@ export const getRemoteScore = async (data: unknown): Promise<number> => {
                 // Браузер автоматически обрабатывает preflight запросы.
                 // Если сервер требует авторизацию, раскомментируйте:
                 // 'Authorization': 'Bearer YOUR_TOKEN',
-                Authorization: `tma ${initDataRaw}`,
+                Authorization: `tma ${config.initData}`,
             },
             body: JSON.stringify(data),
         });
@@ -67,6 +64,10 @@ export const setScore = (score: number): void => {
     localStorage.setItem(STORAGE_GAME_SCORE, score.toString());
 };
 
+export const setInitData = (data: string): void => {
+    config.initData = data;
+};
+
 const sendLog = async (level: string, data: unknown): Promise<void> => {
     if (config.isFetchDisabled) {
         return;
@@ -74,18 +75,13 @@ const sendLog = async (level: string, data: unknown): Promise<void> => {
 
     try {
         console.log('SEND LOG ==>', level, data);
-        const { tgWebAppData } = retrieveLaunchParams();
-        console.log('tgWebAppData ==>', tgWebAppData);
-        const signature = initData.signature();
-        console.log('signature ==>', signature);
-        const params = retrieveRawLaunchParams();
-        console.log('params ==>', params);
+        console.log('Authorization ==>', config.initData);
 
         const response = await fetch(getApiUrl('/telegram/logger'), {
             method: 'POST',
             mode: 'cors', // Явно указываем CORS режим
             headers: {
-                Authorization: `tma ${params}`,
+                Authorization: `tma ${config.initData}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ level, data }),

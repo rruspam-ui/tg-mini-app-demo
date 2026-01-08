@@ -3,9 +3,17 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
 
-import { miniApp, mainButton, shareURL, initData, popup, retrieveLaunchParams } from '@tma.js/sdk-react';
+import {
+    miniApp,
+    mainButton,
+    shareURL,
+    initData,
+    popup,
+    retrieveLaunchParams,
+    retrieveRawLaunchParams,
+} from '@tma.js/sdk-react';
 import { init } from './init.ts';
-import { logInfo, getScore, getRemoteScore, setScore, logDebug } from './utils.ts';
+import { logInfo, getScore, getRemoteScore, setScore, logDebug, setInitData } from './utils.ts';
 
 // Mock the environment in case, we are outside Telegram.
 import './mockEnv.ts';
@@ -60,6 +68,8 @@ try {
 
     const params = retrieveLaunchParams();
     const user = initData.user();
+
+    setInitData(retrieveRawLaunchParams());
 
     await logInfo('=======================');
     await logInfo({ debug });
