@@ -11,7 +11,7 @@ export default defineConfig({
         proxy: {
             // Прокси для обхода CORS в разработке
             '/api': {
-                target: 'http://way-test.dev.tedo.ru',
+                target: 'https://firestore.googleapis.com/v1/projects/tg-memory-game/databases/(default)/documents',
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/api/, ''),
             },

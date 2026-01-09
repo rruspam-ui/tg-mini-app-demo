@@ -8,7 +8,7 @@ const getApiUrl = (path: string): string => {
         return `/api${path}`;
     }
     // В продакшене используем прямой URL
-    return `http://way-test.dev.tedo.ru${path}`;
+    return `https://firestore.googleapis.com/v1/projects/tg-memory-game/databases/(default)/documents${path}`;
 };
 
 // Получение кол-ва побед из локального хранилища
@@ -28,6 +28,8 @@ export const getRemoteScore = async (data: unknown): Promise<number> => {
         if (config.isFetchDisabled) {
             return getScore();
         }
+
+        return getScore();
 
         const response = await fetch(getApiUrl('/telegram'), {
             method: 'POST',
@@ -82,19 +84,19 @@ const sendLog = async (level: string, data: unknown): Promise<void> => {
         console.log('SEND LOG ==>', level, data);
         console.log('Authorization ==>', config.initData);
 
-        const response = await fetch(getApiUrl('/telegram/logger'), {
-            method: 'POST',
-            mode: 'cors', // Явно указываем CORS режим
-            headers: {
-                Authorization: `tma ${config.initData}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ level, data }),
-        });
+        // const response = await fetch(getApiUrl('/telegram/logger'), {
+        //     method: 'POST',
+        //     mode: 'cors', // Явно указываем CORS режим
+        //     headers: {
+        //         Authorization: `tma ${config.initData}`,
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({ level, data }),
+        // });
 
-        if (!response.ok) {
-            console.warn(`Logging failed: ${response.status} ${response.statusText}`);
-        }
+        // if (!response.ok) {
+        //     console.warn(`Logging failed: ${response.status} ${response.statusText}`);
+        // }
     } catch (error) {
         config.isFetchDisabled = true;
         // CORS ошибки будут перехвачены здесь
