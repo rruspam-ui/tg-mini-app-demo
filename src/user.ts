@@ -152,15 +152,15 @@ export const createUser = async (user: TUser): Promise<TUser | null> => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const newUser: TFirebaseUserResult = await response.json();
+        const newUser: TFirebaseDocument = await response.json();
         console.log('createUser result ==>', newUser);
 
-        if (!newUser?.document) {
+        if (!newUser) {
             console.log('User not created:', userId);
             return null;
         }
 
-        return mapFirebaseDocumentToUser(newUser.document);
+        return mapFirebaseDocumentToUser(newUser);
     } catch (error) {
         console.error('Failed to fetch create user:', error);
     }
@@ -197,15 +197,15 @@ export const updateUser = async (user: Required<TUser>): Promise<TUser | null> =
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const newUser: TFirebaseUserResult = await response.json();
+        const newUser: TFirebaseDocument = await response.json();
         console.log('updateUser result ==>', newUser);
 
-        if (!newUser?.document) {
+        if (!newUser) {
             console.log('User not updated:', userId);
             return null;
         }
 
-        return mapFirebaseDocumentToUser(newUser.document);
+        return mapFirebaseDocumentToUser(newUser);
     } catch (error) {
         console.error('Failed to fetch update user:', error);
     }
