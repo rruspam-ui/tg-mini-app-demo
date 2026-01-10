@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@tma.js/sdk-react": "^3.0.14",
-    "eruda": "^3.4.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
