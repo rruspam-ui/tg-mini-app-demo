@@ -100,7 +100,7 @@ const gameReducer = (state: StateType, action: { type: EAction; index?: number }
 };
 
 function App() {
-    const [state, dispatch] = useReducer(gameReducer, getInitState());
+    const [state, dispatch] = useReducer(gameReducer, initialState);
 
     // Проверка на совпадение перевернутых карточек
     useEffect(() => {
