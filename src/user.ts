@@ -185,7 +185,7 @@ export const updateUser = async (user: Required<TUser>): Promise<TUser | null> =
 
         console.log('SEND PATCH updateUser ==>', request);
 
-        const response = await fetch(`STORAGE_URL.USER_UPDATE/${userKey}`, {
+        const response = await fetch(`${STORAGE_URL.USER_UPDATE}/${userKey}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
