@@ -38,8 +38,6 @@ const mapFirebaseDocumentToUser = (document: TFirebaseDocument): TUser => {
         userKey: document.name.split('/').pop(),
     };
 
-    console.log(`result User ==>`, user);
-
     return user;
 };
 
@@ -67,8 +65,6 @@ export const findUserById = async (userId: number | string): Promise<TUser | nul
             },
         };
 
-        console.log('SEND POST findUserById ==>', request);
-
         const response = await fetch(STORAGE_URL.USER_QUERY, {
             method: 'POST',
             headers: {
@@ -82,7 +78,6 @@ export const findUserById = async (userId: number | string): Promise<TUser | nul
         }
 
         const users: TFirebaseUserResult[] = await response.json();
-        console.log('findUserById result ==>', users);
         const user = users?.[0];
 
         if (!user?.document) {
@@ -100,7 +95,6 @@ export const findUserById = async (userId: number | string): Promise<TUser | nul
 
 export const findUserByKey = async (userKey: string): Promise<TUser | null> => {
     try {
-        console.log('SEND GET findUserByKey ==>', userKey);
         const response = await fetch(`STORAGE_URL.USER_GET/${userKey}`);
 
         if (!response.ok) {
@@ -108,7 +102,6 @@ export const findUserByKey = async (userKey: string): Promise<TUser | null> => {
         }
 
         const user: TFirebaseUserResult = await response.json();
-        console.log('findUserByKey result ==>', user);
 
         if (!user?.document) {
             console.log('User not exist:', userKey);
@@ -138,8 +131,6 @@ export const createUser = async (user: TUser): Promise<TUser | null> => {
             },
         };
 
-        console.log('SEND POST createUser ==>', request);
-
         const response = await fetch(STORAGE_URL.USER_CREATE, {
             method: 'POST',
             headers: {
@@ -153,7 +144,6 @@ export const createUser = async (user: TUser): Promise<TUser | null> => {
         }
 
         const newUser: TFirebaseDocument = await response.json();
-        console.log('createUser result ==>', newUser);
 
         if (!newUser) {
             console.log('User not created:', userId);
@@ -183,8 +173,6 @@ export const updateUser = async (user: Required<TUser>): Promise<TUser | null> =
             },
         };
 
-        console.log('SEND PATCH updateUser ==>', request);
-
         const response = await fetch(`${STORAGE_URL.USER_UPDATE}/${userKey}`, {
             method: 'PATCH',
             headers: {
@@ -198,7 +186,6 @@ export const updateUser = async (user: Required<TUser>): Promise<TUser | null> =
         }
 
         const newUser: TFirebaseDocument = await response.json();
-        console.log('updateUser result ==>', newUser);
 
         if (!newUser) {
             console.log('User not updated:', userId);

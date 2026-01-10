@@ -31,7 +31,14 @@ try {
         debug,
         eruda: debug && ['ios', 'android', 'macos'].includes(platform),
         mockForMacOS: platform === 'macos',
-    }).then(() => {
+    }).then(async () => {
+        const user = initData.user();
+
+        if (user) {
+            const score = await getRemoteScore(user);
+            setScore(score);
+        }
+
         root.render(
             <StrictMode>
                 <App />
@@ -60,9 +67,8 @@ try {
             // Получение текущих очков из localStorage
             const score = getScore();
             shareURL(`Посмотрите! У меня ${score} очков в игре!`);
-            console.log('Окно выбора чата открыто для отправки сообщения.');
-        } catch (error) {
-            console.error('Ошибка при открытии окна выбора чата:', error);
+        } catch {
+            /* empty */
         }
     });
 
@@ -72,9 +78,6 @@ try {
     setInitData(retrieveRawInitData());
 
     if (user) {
-        const score = await getRemoteScore(user);
-        setScore(score);
-
         const userName = [user.last_name, user.first_name].filter((s) => Boolean(s)).join(' ');
         const messages = [`Добро пожаловать ${userName}`];
 
@@ -86,6 +89,6 @@ try {
 
         await popup.show({ message: messages.join('\n') });
     }
-} catch (error) {
-    console.error('Ошибка инициализации:', error);
+} catch {
+    /* empty */
 }
