@@ -15,6 +15,10 @@ type TFirebaseFields = {
     };
 };
 
+type TFirebaseChange = {
+    fields: TFirebaseFields;
+};
+
 type TFirebaseDocument = {
     name: string;
     fields: TFirebaseFields;
@@ -123,12 +127,14 @@ export const createUser = async (user: TUser): Promise<TUser | null> => {
     try {
         const { userId, score } = user;
 
-        const request: TFirebaseFields = {
-            user_id: {
-                stringValue: userId,
-            },
-            score: {
-                integerValue: score,
+        const request: TFirebaseChange = {
+            fields: {
+                user_id: {
+                    stringValue: userId,
+                },
+                score: {
+                    integerValue: score,
+                },
             },
         };
 
@@ -166,12 +172,14 @@ export const updateUser = async (user: Required<TUser>): Promise<TUser | null> =
     try {
         const { userId, score, userKey } = user;
 
-        const request: TFirebaseFields = {
-            user_id: {
-                stringValue: userId,
-            },
-            score: {
-                integerValue: score,
+        const request: TFirebaseChange = {
+            fields: {
+                user_id: {
+                    stringValue: userId,
+                },
+                score: {
+                    integerValue: score,
+                },
             },
         };
 
