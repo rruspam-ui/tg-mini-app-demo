@@ -33,6 +33,14 @@ const initialState: StateType = {
     gameOver: false,
 };
 
+const getInitState = (): StateType => {
+    return {
+        ...initialState,
+        deck: generateDeck(),
+        score: getScore(),
+    };
+};
+
 const gameReducer = (state: StateType, action: { type: EAction; index?: number }): StateType => {
     switch (action.type) {
         case EAction.FLIP_CARD:
@@ -85,18 +93,14 @@ const gameReducer = (state: StateType, action: { type: EAction; index?: number }
             return { ...state, flipped: [], pendingReset: false };
         case EAction.RESET_GAME:
             // Сбрасываем состояние игры, оставляя счетчик побед
-            return {
-                ...initialState,
-                deck: generateDeck(),
-                score: getScore(),
-            };
+            return getInitState();
         default:
             return state;
     }
 };
 
 function App() {
-    const [state, dispatch] = useReducer(gameReducer, initialState);
+    const [state, dispatch] = useReducer(gameReducer, getInitState());
 
     // Проверка на совпадение перевернутых карточек
     useEffect(() => {

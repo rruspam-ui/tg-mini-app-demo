@@ -31,20 +31,21 @@ try {
         debug,
         eruda: debug && ['ios', 'android', 'macos'].includes(platform),
         mockForMacOS: platform === 'macos',
-    }).then(async () => {
-        const user = initData.user();
-
-        if (user) {
-            const score = await getRemoteScore(user);
-            setScore(score);
-        }
-
-        root.render(
-            <StrictMode>
-                <App />
-            </StrictMode>,
-        );
     });
+
+    // Запрашиваем очки с сервера и сохраняем в localStorage
+    const user = initData.user();
+    if (user) {
+        const score = await getRemoteScore(user);
+        setScore(score);
+    }
+
+    // Инициализируем React интерфейс после сохранения очков
+    root.render(
+        <StrictMode>
+            <App />
+        </StrictMode>,
+    );
 
     // Mini App готово
     miniApp.ready();
@@ -72,18 +73,11 @@ try {
         }
     });
 
-    const params = retrieveLaunchParams();
-    const user = initData.user();
-
     setInitData(retrieveRawInitData());
 
     if (user) {
         const userName = [user.last_name, user.first_name].filter((s) => Boolean(s)).join(' ');
         const messages = [`Добро пожаловать ${userName}`];
-
-        if (params) {
-            // messages.push(`Версия ${params.tgWebAppVersion}`);
-        }
 
         messages.push(`Версия приложения ${APP_VERSION}`);
 
