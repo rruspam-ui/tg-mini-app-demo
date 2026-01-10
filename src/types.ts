@@ -12,3 +12,13 @@ export type StateType = {
     pendingReset: boolean;
     gameOver: boolean;
 };
+
+export type TelegramUser = {
+    id: number;
+    allows_write_to_pm?: boolean;
+    language_code?: string;
+    first_name?: string;
+    last_name?: string;
+    photo_url?: string;
+    username?: string;
+};

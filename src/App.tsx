@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { MEMORY_COLORS } from './constants';
 import { EAction } from './enums';
 import type { DeckType, StateType } from './types';
-import { getScore, setScore } from './utils';
+import { getScore, setRemoteScore, setScore } from './utils';
 import './App.css';
 
 const deck: DeckType[] = [];
@@ -63,6 +63,7 @@ const gameReducer = (state: StateType, action: { type: EAction; index?: number }
                 const score = isGameOver ? state.score + 1 : state.score;
 
                 if (isGameOver) {
+                    setRemoteScore(score);
                     setScore(score);
                 }
 

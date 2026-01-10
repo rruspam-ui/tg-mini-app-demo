@@ -13,7 +13,7 @@ import {
     retrieveRawInitData,
 } from '@tma.js/sdk-react';
 import { init } from './init.ts';
-import { logInfo, getScore, getRemoteScore, setScore, logDebug, setInitData } from './utils.ts';
+import { getScore, setScore, setInitData, getRemoteScore } from './utils.ts';
 
 // Mock the environment in case, we are outside Telegram.
 import './mockEnv.ts';
@@ -71,13 +71,9 @@ try {
 
     setInitData(retrieveRawInitData());
 
-    await logInfo('=======================');
-    await logInfo({ debug });
-
     if (user) {
         const score = await getRemoteScore(user);
         setScore(score);
-        await logDebug({ score });
 
         const userName = [user.last_name, user.first_name].filter((s) => Boolean(s)).join(' ');
         const messages = [`Добро пожаловать ${userName}`];
@@ -89,9 +85,6 @@ try {
         messages.push(`Версия приложения ${APP_VERSION}`);
 
         await popup.show({ message: messages.join('\n') });
-
-        await logInfo({ user });
-        await logInfo({ params });
     }
 } catch (error) {
     console.error('Ошибка инициализации:', error);
