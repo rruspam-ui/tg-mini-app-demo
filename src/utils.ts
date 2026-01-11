@@ -1,13 +1,5 @@
-import { STORAGE_GAME_SCORE } from './constants';
 import type { TelegramUser } from './types';
-import { createUser, findUserById, updateUser, type TUser } from './user';
-
-// Получение кол-ва побед из локального хранилища
-export const getScore = (): number => {
-    const score = localStorage.getItem(STORAGE_GAME_SCORE);
-
-    return score ? Number(score) : 0;
-};
+import { createUser, findUserById, updateUser, type TUser, type TUserCreate, type TUserUpdate } from './user';
 
 type TConfig = {
     isFetchDisabled: boolean;
@@ -20,59 +12,75 @@ const config: TConfig = {
     initData: '',
 };
 
-export const setScore = (score: number): void => {
-    localStorage.setItem(STORAGE_GAME_SCORE, score.toString());
+// Кол-во побед
+export const getScore = (): number => {
+    return config.user?.score ?? 0;
 };
 
-export const getRemoteScore = async (tgUser: TelegramUser): Promise<number> => {
+// Наилучший результат (кол-во попыток)
+export const getRecord = (): number => {
+    return config.user?.record ?? 0;
+};
+
+// Наилучший результат (кол-во попыток)
+export const setRecord = (record: number): number => {
+    const { user } = config;
+
+    if (!user) {
+        return 0;
+    }
+
+    if (!user.record || user.record > record) {
+        user.record = record;
+    }
+
+    return user.record;
+};
+
+// Получение данных с сервера и сохранение в конфигурации
+export const getRemoteInfo = async (tgUser: TelegramUser): Promise<void> => {
     const user = await findUserById(tgUser.id);
 
     if (user) {
         config.user = user;
-        return user.score;
     }
-
-    const emptyUser: TUser = {
-        userId: tgUser.id.toString(),
-        score: 0,
-    };
-
-    const newUser = await createUser(emptyUser);
-
-    if (newUser) {
-        config.user = newUser;
-        return newUser.score;
-    }
-
-    return emptyUser.score;
 };
 
-export const setRemoteScore = async (score: number): Promise<void> => {
+export const setRemoteInfo = async (score: number): Promise<void> => {
     const { user } = config;
 
-    if (!user) {
+    if (!user?.record) {
         return;
     }
 
-    const remoteUser = await findUserById(user.userId);
+    if (user.userKey) {
+        // Защита от повторных обновлений
+        if (user.score !== score) {
+            user.score = score;
 
-    if (remoteUser?.userKey) {
-        const updatedUser: Required<TUser> = {
-            userId: remoteUser.userId,
-            userKey: remoteUser.userKey,
+            const updatedUser: TUserUpdate = {
+                userId: user.userId,
+                userKey: user.userKey,
+                score,
+                record: user.record,
+            };
+
+            await updateUser(updatedUser);
+        }
+    } else {
+        const emptyUser: TUserCreate = {
+            userId: user.userId,
             score,
+            record: user.record,
         };
 
-        await updateUser(updatedUser);
-        return;
+        const newUser = await createUser(emptyUser);
+
+        if (newUser) {
+            user.userKey = newUser.userKey;
+            user.score = score;
+        }
     }
-
-    const emptyUser: TUser = {
-        userId: user.userId,
-        score,
-    };
-
-    await createUser(emptyUser);
 };
 
 export const setInitData = (data: string | undefined): void => {

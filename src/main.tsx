@@ -13,7 +13,7 @@ import {
     retrieveRawInitData,
 } from '@tma.js/sdk-react';
 import { init } from './init.ts';
-import { getScore, setScore, setInitData, getRemoteScore } from './utils.ts';
+import { getScore, setInitData, getRemoteInfo } from './utils.ts';
 
 // Mock the environment in case, we are outside Telegram.
 import './mockEnv.ts';
@@ -35,8 +35,7 @@ try {
     // Запрашиваем очки с сервера и сохраняем в localStorage
     const user = initData.user();
     if (user) {
-        const score = await getRemoteScore(user);
-        setScore(score);
+        await getRemoteInfo(user);
     }
 
     // Инициализируем React интерфейс после сохранения очков

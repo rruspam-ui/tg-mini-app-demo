@@ -20,6 +20,12 @@ h1 {
     color: #333;
 }
 
+h3 {
+    font-size: 1.17rem;
+    margin-bottom: 5px;
+    color: #7d7878;
+}
+
 .deck {
     display: grid;
     grid-template-columns: repeat(3, 100px);

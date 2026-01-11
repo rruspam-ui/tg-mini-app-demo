@@ -9,6 +9,7 @@ export type StateType = {
     matched: string[];
     turns: number;
     score: number;
+    record: number;
     pendingReset: boolean;
     gameOver: boolean;
 };

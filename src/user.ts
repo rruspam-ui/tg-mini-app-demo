@@ -4,14 +4,21 @@ export type TUser = {
     userKey?: string;
     userId: string;
     score: number;
+    record?: number;
 };
 
+export type TUserCreate = Required<Omit<TUser, 'userKey'>>;
+export type TUserUpdate = Required<TUser>;
+
 type TFirebaseFields = {
+    user_id: {
+        stringValue: string;
+    };
     score: {
         integerValue: string | number;
     };
-    user_id: {
-        stringValue: string;
+    record?: {
+        integerValue: string | number;
     };
 };
 
@@ -34,168 +41,140 @@ type TFirebaseUserResult = {
 const mapFirebaseDocumentToUser = (document: TFirebaseDocument): TUser => {
     const user: TUser = {
         userId: document.fields.user_id.stringValue,
-        score: Number(document.fields.score.integerValue),
         userKey: document.name.split('/').pop(),
+        score: Number(document.fields.score.integerValue),
+        record: document.fields.record ? Number(document.fields.record.integerValue) : undefined,
     };
 
     return user;
 };
 
-export const findUserById = async (userId: number | string): Promise<TUser | null> => {
+const fetchUserData = async <T>(url: string, method: string, body?: string): Promise<T | undefined> => {
     try {
-        const request = {
-            structuredQuery: {
-                from: [
-                    {
-                        collectionId: 'scores',
-                    },
-                ],
-                where: {
-                    fieldFilter: {
-                        field: {
-                            fieldPath: 'user_id',
-                        },
-                        op: 'EQUAL',
-                        value: {
-                            stringValue: userId.toString(),
-                        },
-                    },
-                },
-                limit: 1,
-            },
-        };
+        const config =
+            method === 'GET'
+                ? undefined
+                : {
+                      headers: {
+                          'Content-Type': 'application/json',
+                      },
+                      method,
+                      body,
+                  };
 
-        const response = await fetch(STORAGE_URL.USER_QUERY, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(request),
-        });
+        const response = await fetch(url, config);
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error status: ${response.status}`);
         }
 
-        const users: TFirebaseUserResult[] = await response.json();
-        const user = users?.[0];
-
-        if (!user?.document) {
-            console.log('User not exist:', userId);
-            return null;
-        }
-
-        return mapFirebaseDocumentToUser(user.document);
+        return response.json();
     } catch (error) {
-        console.error('Failed to fetch get user:', error);
+        console.error('Failed to fetch user data:', error);
     }
 
-    return null;
+    return undefined;
+};
+
+export const findUserById = async (userId: number | string): Promise<TUser | null> => {
+    const request = {
+        structuredQuery: {
+            from: [
+                {
+                    collectionId: 'scores',
+                },
+            ],
+            where: {
+                fieldFilter: {
+                    field: {
+                        fieldPath: 'user_id',
+                    },
+                    op: 'EQUAL',
+                    value: {
+                        stringValue: userId.toString(),
+                    },
+                },
+            },
+            limit: 1,
+        },
+    };
+
+    const users = await fetchUserData<TFirebaseUserResult[]>(STORAGE_URL.USER_QUERY, 'POST', JSON.stringify(request));
+    const user = users?.[0];
+
+    if (!user?.document) {
+        console.log('User not exist:', userId);
+        return null;
+    }
+
+    return mapFirebaseDocumentToUser(user.document);
 };
 
 export const findUserByKey = async (userKey: string): Promise<TUser | null> => {
-    try {
-        const response = await fetch(`STORAGE_URL.USER_GET/${userKey}`);
+    const user = await fetchUserData<TFirebaseUserResult>(`STORAGE_URL.USER_GET/${userKey}`, 'GET');
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const user: TFirebaseUserResult = await response.json();
-
-        if (!user?.document) {
-            console.log('User not exist:', userKey);
-            return null;
-        }
-
-        return mapFirebaseDocumentToUser(user.document);
-    } catch (error) {
-        console.error('Failed to fetch get user:', error);
+    if (!user?.document) {
+        console.log('User not exist:', userKey);
+        return null;
     }
 
-    return null;
+    return mapFirebaseDocumentToUser(user.document);
 };
 
-export const createUser = async (user: TUser): Promise<TUser | null> => {
-    try {
-        const { userId, score } = user;
+export const createUser = async (user: TUserCreate): Promise<TUser | null> => {
+    const { userId, score, record } = user;
 
-        const request: TFirebaseChange = {
-            fields: {
-                user_id: {
-                    stringValue: userId,
-                },
-                score: {
-                    integerValue: score,
-                },
+    const request: TFirebaseChange = {
+        fields: {
+            user_id: {
+                stringValue: userId,
             },
-        };
-
-        const response = await fetch(STORAGE_URL.USER_CREATE, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+            score: {
+                integerValue: score,
             },
-            body: JSON.stringify(request),
-        });
+            record: {
+                integerValue: record,
+            },
+        },
+    };
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    const newUser = await fetchUserData<TFirebaseDocument>(STORAGE_URL.USER_CREATE, 'POST', JSON.stringify(request));
 
-        const newUser: TFirebaseDocument = await response.json();
-
-        if (!newUser) {
-            console.log('User not created:', userId);
-            return null;
-        }
-
-        return mapFirebaseDocumentToUser(newUser);
-    } catch (error) {
-        console.error('Failed to fetch create user:', error);
+    if (!newUser) {
+        console.log('User not created:', userId);
+        return null;
     }
 
-    return null;
+    return mapFirebaseDocumentToUser(newUser);
 };
 
-export const updateUser = async (user: Required<TUser>): Promise<TUser | null> => {
-    try {
-        const { userId, score, userKey } = user;
+export const updateUser = async (user: TUserUpdate): Promise<TUser | null> => {
+    const { userId, score, userKey, record } = user;
 
-        const request: TFirebaseChange = {
-            fields: {
-                user_id: {
-                    stringValue: userId,
-                },
-                score: {
-                    integerValue: score,
-                },
+    const request: TFirebaseChange = {
+        fields: {
+            user_id: {
+                stringValue: userId,
             },
-        };
-
-        const response = await fetch(`${STORAGE_URL.USER_UPDATE}/${userKey}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
+            score: {
+                integerValue: score,
             },
-            body: JSON.stringify(request),
-        });
+            record: {
+                integerValue: record,
+            },
+        },
+    };
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    const newUser = await fetchUserData<TFirebaseDocument>(
+        `${STORAGE_URL.USER_UPDATE}/${userKey}`,
+        'PATCH',
+        JSON.stringify(request),
+    );
 
-        const newUser: TFirebaseDocument = await response.json();
-
-        if (!newUser) {
-            console.log('User not updated:', userId);
-            return null;
-        }
-
-        return mapFirebaseDocumentToUser(newUser);
-    } catch (error) {
-        console.error('Failed to fetch update user:', error);
+    if (!newUser) {
+        console.log('User not updated:', userId);
+        return null;
     }
 
-    return null;
+    return mapFirebaseDocumentToUser(newUser);
 };

@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { MEMORY_COLORS } from './constants';
 import { EAction } from './enums';
 import type { DeckType, StateType } from './types';
-import { getScore, setRemoteScore, setScore } from './utils';
+import { getRecord, getScore, setRecord, setRemoteInfo } from './utils';
 import './App.css';
 
 const deck: DeckType[] = [];
@@ -19,25 +19,32 @@ const generateDeck = (): DeckType[] => {
     return deck.sort(() => Math.random() - 0.5);
 };
 
-const initialState: StateType = {
-    deck: generateDeck(),
-    // Перевернутые карточки
-    flipped: [],
-    // Совпавшие карточки
-    matched: [],
-    // Счетчик попыток
-    turns: 0,
-    // Общий счет
-    score: getScore(),
-    pendingReset: false,
-    gameOver: false,
+// Функция для создания начального состояния
+// Вызывается лениво при первом рендере компонента
+const getInitialState = (): StateType => {
+    return {
+        deck: generateDeck(),
+        // Перевернутые карточки
+        flipped: [],
+        // Совпавшие карточки
+        matched: [],
+        // Счетчик попыток
+        turns: 0,
+        // Общий счет
+        score: getScore(),
+        // Рекорд
+        record: getRecord(),
+        pendingReset: false,
+        gameOver: false,
+    };
 };
 
 const getInitState = (): StateType => {
     return {
-        ...initialState,
+        ...getInitialState(),
         deck: generateDeck(),
         score: getScore(),
+        record: getRecord(),
     };
 };
 
@@ -68,11 +75,14 @@ const gameReducer = (state: StateType, action: { type: EAction; index?: number }
             if (state.deck[first].color === state.deck[second].color) {
                 const newMatched = [...state.matched, state.deck[first].color];
                 const isGameOver = newMatched.length === state.deck.length / 2;
-                const score = isGameOver ? state.score + 1 : state.score;
+
+                let score = state.score;
+                let record = state.record;
 
                 if (isGameOver) {
-                    setRemoteScore(score);
-                    setScore(score);
+                    score = state.score + 1;
+                    record = setRecord(turns);
+                    setRemoteInfo(score);
                 }
 
                 return {
@@ -80,6 +90,7 @@ const gameReducer = (state: StateType, action: { type: EAction; index?: number }
                     matched: newMatched,
                     turns,
                     score,
+                    record,
                     flipped: [],
                     pendingReset: false,
                     gameOver: isGameOver,
@@ -94,13 +105,62 @@ const gameReducer = (state: StateType, action: { type: EAction; index?: number }
         case EAction.RESET_GAME:
             // Сбрасываем состояние игры, оставляя счетчик побед
             return getInitState();
+        case EAction.UPDATE_SCORE_AND_RECORD:
+            // Обновляем только score и record без сброса игры
+            return {
+                ...state,
+                score: getScore(),
+                record: getRecord(),
+            };
         default:
             return state;
     }
 };
 
 function App() {
-    const [state, dispatch] = useReducer(gameReducer, initialState);
+    // Используем ленивую инициализацию: функция будет вызвана только при первом рендере
+    // К этому моменту config.user уже должен быть заполнен (загружается в main.tsx до рендера)
+    const [state, dispatch] = useReducer(gameReducer, undefined, getInitialState);
+
+    // Обновляем score и record, если config.user загрузился после первого рендера
+    useEffect(() => {
+        let hasUpdated = false;
+
+        const checkAndUpdate = () => {
+            const currentScore = getScore();
+            const currentRecord = getRecord();
+
+            // Обновляем состояние только один раз, когда config.user загрузится
+            if (!hasUpdated && (currentScore !== 0 || currentRecord !== 0)) {
+                dispatch({
+                    type: EAction.UPDATE_SCORE_AND_RECORD,
+                });
+                hasUpdated = true;
+            }
+        };
+
+        // Проверяем сразу при монтировании
+        checkAndUpdate();
+
+        // Проверяем периодически, пока config.user не будет загружен
+        const interval = setInterval(() => {
+            checkAndUpdate();
+            // Если уже обновили, прекращаем проверку
+            if (hasUpdated) {
+                clearInterval(interval);
+            }
+        }, 100);
+
+        // Останавливаем проверку через 5 секунд
+        const timeout = setTimeout(() => {
+            clearInterval(interval);
+        }, 5000);
+
+        return () => {
+            clearInterval(interval);
+            clearTimeout(timeout);
+        };
+    }, []); // Запускаем только при монтировании
 
     // Проверка на совпадение перевернутых карточек
     useEffect(() => {
@@ -134,13 +194,12 @@ function App() {
         <>
             <div className="App">
                 {' '}
-                <h1>Memory Game</h1>{' '}
+                <h1>Memory Game</h1>
+                <h3>Лучший результат: {state.record || 'Нет данных'}</h3>
                 <div className="info">
-                    {' '}
                     <p>Очки: {state.score}</p> <p>Попытки: {state.turns}/15</p>{' '}
-                </div>{' '}
+                </div>
                 <div className="deck">
-                    {' '}
                     {state.deck.map((card, index) => (
                         <div
                             key={index}
