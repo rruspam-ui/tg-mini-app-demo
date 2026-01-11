@@ -66,7 +66,7 @@ try {
             // Получение текущих очков из localStorage
             const score = getScore();
             const record = getRecord();
-            shareURL(`Посмотрите!\nУ меня ${score} очков в игре!\nМой лучший результат ${record} попыток`);
+            shareURL(`Посмотрите!\nУ меня ${score} очков в игре!\nМой лучший результат - ${record} ходов`);
         } catch {
             /* empty */
         }
