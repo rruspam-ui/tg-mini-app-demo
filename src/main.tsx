@@ -13,7 +13,7 @@ import {
     retrieveRawInitData,
 } from '@tma.js/sdk-react';
 import { init } from './init.ts';
-import { getScore, setInitData, getRemoteInfo } from './utils.ts';
+import { getScore, setInitData, getRemoteInfo, getRecord } from './utils.ts';
 
 // Mock the environment in case, we are outside Telegram.
 import './mockEnv.ts';
@@ -65,7 +65,8 @@ try {
         try {
             // Получение текущих очков из localStorage
             const score = getScore();
-            shareURL(`Посмотрите! У меня ${score} очков в игре!`);
+            const record = getRecord();
+            shareURL(`Посмотрите!\nУ меня ${score} очков в игре!\nМой лучший результат ${record} попыток`);
         } catch {
             /* empty */
         }
